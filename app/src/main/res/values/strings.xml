@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">InterrIITApp</string>
+    <string name="title_activity_dash_board">DashBoardActivity</string>
+    <string name="title_activity_farmer_help">FarmerHelpActivity</string>
+    <string name="title_activity_trivia">TriviaActivity</string>
+</resources>
