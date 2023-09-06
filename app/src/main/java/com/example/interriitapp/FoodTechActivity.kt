@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -121,12 +122,10 @@ class FoodTechActivity : ComponentActivity() {
     fun SearchBar(makeCall: MutableState<Boolean>, query : MutableState<String>, showProgress : MutableState<Boolean>) {
         var searchText by remember { mutableStateOf(TextFieldValue()) }
 
-        TextField(
+        OutlinedTextField(
             value = searchText,
             onValueChange = { newText ->
                 searchText = newText
-                // Call the search function when the text changes
-//                onSearch(newText.text)
                 query.value = newText.text
             },
             modifier = Modifier
@@ -171,7 +170,7 @@ fun RecipeCard(recipe: RecipeDetails) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Display Recipe Image
+            // Image
             Image(
                 painter = rememberImagePainter(recipe.image),
                 contentDescription = null,
@@ -184,7 +183,7 @@ fun RecipeCard(recipe: RecipeDetails) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display Recipe Title
+            // Title
             Text(
                 text = recipe.label ?: "",
                 style = MaterialTheme.typography.labelLarge
@@ -192,7 +191,7 @@ fun RecipeCard(recipe: RecipeDetails) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Display Recipe Source
+            // Source
             Text(
                 text = "Source: ${recipe.source ?: ""}",
                 style = MaterialTheme.typography.bodySmall,
@@ -201,7 +200,7 @@ fun RecipeCard(recipe: RecipeDetails) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Display Recipe Ingredients
+            // Ingredients
             recipe.ingredients?.let {
                 Column {
                     Text(
