@@ -16,6 +16,11 @@
         android:theme="@style/Theme.InterrIITApp"
         tools:targetApi="31">
         <activity
+            android:name=".ui.theme.HealthActivity"
+            android:exported="false"
+            android:label="@string/title_activity_health"
+            android:theme="@style/Theme.InterrIITApp" />
+        <activity
             android:name=".TriviaActivity"
             android:exported="false"
             android:label="@string/title_activity_trivia"

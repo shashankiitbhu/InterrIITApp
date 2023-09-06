@@ -1,5 +1,6 @@
 package com.example.interriitapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -24,19 +25,37 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,15 +67,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.interriitapp.Models.TriviaQuestion
+import com.example.interriitapp.Network.TriviaResponse
 import com.example.interriitapp.Network.createTriviaService
 import com.example.interriitapp.ui.theme.InterrIITAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.Call
 import retrofit2.awaitResponse
 import kotlin.math.absoluteValue
 import kotlin.math.pow
 
 class TriviaActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -65,20 +87,82 @@ class TriviaActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     val triviaQuestions = remember{mutableStateOf(listOf<TriviaQuestion>())}
+                    val diff = remember{ mutableStateOf("") }
+                    val num = remember{ mutableStateOf(1) }
+                    val makeCall = remember{ mutableStateOf(false) }
+                    val showCards = remember{ mutableStateOf(false) }
                     val apiCall = createTriviaService()
-                    val response = apiCall.getTriviaQuestions(10,null,"easy","multiple")
+                    val showProgressBar = remember{ mutableStateOf(false) }
 
-                    LaunchedEffect(Unit){
-                        val result = response.awaitResponse()
-                        if(result.isSuccessful){
-                             triviaQuestions.value = result.body()!!.results
+                    val response = apiCall.getTriviaQuestions(num.value,18,""+diff.value,"multiple")
+                    if(makeCall.value){
+                        LaunchedEffect(Unit){
+                            showProgressBar.value = true
+                            val result = response.awaitResponse()
 
+                            if(result.isSuccessful){
+                                triviaQuestions.value = result.body()!!.results
+                                showCards.value = true
+                                showProgressBar.value = false
+                            }else{
+                                Toast.makeText(this@TriviaActivity, "Error", Toast.LENGTH_SHORT).show()
+                                showProgressBar.value = false
+                            }
                         }
                     }
-                    TriviaGame(questions = triviaQuestions.value)
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(text = "Tech Trivia") },
+                                navigationIcon = {
+                                    IconButton(onClick = { finish() }) {
+                                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                                    }
+                                },
+                                actions = {
+                                    IconButton(onClick = {
+                                        val intent = Intent(this@TriviaActivity, DashBoardActivity::class.java)
+                                        startActivity(intent)
+                                    }) {
+                                    }
+                                }
+                            )
+                        }
+                    ){
+                        if(showCards.value){
+                            Column(modifier = Modifier.fillMaxSize().padding(it)) {
+                                TriviaGame(questions = triviaQuestions.value)
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Button(onClick = {
+                                    showCards.value = false
+                                    showProgressBar.value = false
+                                },
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .align(Alignment.CenterHorizontally)) {
+                                    Text(text = "Reset Trivia")
+                                }
+                            }
 
+                        }else{
+                            if(showProgressBar.value){
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+                                    CircularProgressIndicator()
+                                }
+                            }else{
+                                Column(modifier = Modifier.fillMaxSize().padding(it)) {
+                                    TriviaOptionsInput(onSearchClicked = {difficulty, input ->
+                                        diff.value = difficulty
+                                        num.value = input
+                                        makeCall.value = true
+                                    } )
 
+                                }
+                            }
+                        }
+                    }
 
 
                 }
@@ -92,8 +176,8 @@ fun TriviaCard(
     question: TriviaQuestion,
     onAnswerSelected: (Boolean) -> Unit
 ) {
-    var selectedAnswer by remember { mutableStateOf("") }
-    var showResult by remember { mutableStateOf(false) }
+    var selectedAnswer by rememberSaveable { mutableStateOf("") }
+    var showResult by rememberSaveable { mutableStateOf(false) }
 
     // Shuffle the options so that the correct answer isn't always in the same spot
     val options = question.incorrect_answers + question.correct_answer
@@ -118,7 +202,7 @@ fun TriviaCard(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = question.question,
+                text = android.text.Html.fromHtml(question.question, android.text.Html.FROM_HTML_MODE_LEGACY).toString(),
                 fontSize = 20.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -155,7 +239,9 @@ fun TriviaCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = option, modifier = Modifier.weight(1f).padding(8.dp))
+                        Text(text = option, modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp))
                     }
                 }
             }
@@ -168,10 +254,9 @@ fun TriviaCard(
 fun TriviaGame(
     questions: List<TriviaQuestion>
 ) {
-    var currentQuestionIndex by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
-    Box(modifier =  Modifier.fillMaxSize()){
+    Box(modifier =  Modifier.fillMaxWidth()){
         val pagerState = rememberPagerState()
         HorizontalPager(pageCount = questions.size, state = pagerState, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(
             Alignment.Center)) { page ->
@@ -216,6 +301,113 @@ fun Modifier.pagerTransition(page: Int, pagerState: PagerState) = graphicsLayer 
 @OptIn(ExperimentalFoundationApi::class)
 fun PagerState.calculateCurrentOffsetForPage(page: Int): Float {
     return (currentPage - page) + currentPageOffsetFraction
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TriviaOptionsInput(
+    onSearchClicked: (difficulty: String,input: Int) -> Unit,
+) {
+    var selectedDifficulty by remember { mutableStateOf("medium") }
+    var mExpanded by remember { mutableStateOf(false) }
+    var selectedNumber by remember { mutableStateOf(0) }
+    var searchInput by remember { mutableStateOf("") }
+
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        // Search Box
+        TextField(
+            value = searchInput,
+            onValueChange = { newValue ->
+                searchInput = newValue
+                // Here you can add validation for numeric input if needed
+                val number = newValue.toIntOrNull() ?: 0
+                selectedNumber = number
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color.Black,
+                containerColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            singleLine = true,
+            placeholder = { Text("Enter Number of Questions") },
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        )
+
+        // Difficulty Dropdown
+        ExposedDropdownMenuBox(expanded = mExpanded, onExpandedChange ={newValue -> mExpanded = newValue} ) {
+            TextField(
+                value = selectedDifficulty,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = mExpanded)
+                },
+                placeholder = {
+                   "Hellop"
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    containerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                singleLine = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+
+            DropdownMenu(
+                expanded = mExpanded,
+                onDismissRequest = { mExpanded = false  }
+            ) {
+                DropdownMenuItem(
+                    onClick = {
+                        selectedDifficulty = "easy"
+                        mExpanded = false
+                    },
+                    text = {Text("Easy")}
+                )
+                DropdownMenuItem(
+                    onClick = {
+                        selectedDifficulty = "medium"
+                        mExpanded = false
+                    },
+                    text = {Text("Medium")}
+                )
+                DropdownMenuItem(
+                    onClick = {
+                        selectedDifficulty = "hard"
+                        mExpanded = false
+                    },
+                    text = {Text("Hard")}
+                )
+            }
+
+        }
+        Button(
+            onClick = {
+                onSearchClicked(selectedDifficulty,selectedNumber)
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text("Make Trivia")
+        }
+
+    }
 }
 
 

@@ -54,7 +54,7 @@ class DashBoardActivity : ComponentActivity() {
 @Composable
 fun CardGrid() {
     val cardData = listOf(
-        "Food Help", "Card 2", "Card 3", "Card 4"
+        "Find Recipe", "Tech Trivia", "Card 3", "Card 4"
     )
 
     LazyVerticalGrid(
@@ -85,22 +85,19 @@ fun CardItem(text: String) {
             .padding(8.dp)
             .clickable {
                 when (text) {
-                    "Food Help" -> {
-                        // Action to perform when Card 1 is clicked
+                    "Find Recipe" -> {
                         context.startActivity(Intent(context, FoodTechActivity::class.java))
                     }
 
-                    "Card 2" -> {
-                        // Action to perform when Card 2 is clicked
+                    "Tech Trivia" -> {
                         context.startActivity(Intent(context, TriviaActivity::class.java))
                     }
 
                     "Card 3" -> {
-                        // Action to perform when Card 3 is clicked
                     }
 
                     "Card 4" -> {
-                        // Action to perform when Card 4 is clicked
+
                     }
                 }
             },
