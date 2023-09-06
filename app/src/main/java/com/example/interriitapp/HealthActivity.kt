@@ -86,6 +86,8 @@ class HealthActivity : ComponentActivity() {
                                 onClick = {
                                     showDialog.value = true
                                 },
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.primary,
                             ) {
                                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
                                 Text(text = "Add Reminder")
@@ -369,6 +371,10 @@ fun TaskItem(task: Task) {
             .fillMaxWidth()
             .padding(8.dp),
         elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier

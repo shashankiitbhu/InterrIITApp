@@ -42,6 +42,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -63,6 +64,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,26 +115,12 @@ class TriviaActivity : ComponentActivity() {
                         }
                     }
                     Scaffold(
-                        topBar = {
-                            TopAppBar(
-                                title = { Text(text = "Tech Trivia") },
-                                navigationIcon = {
-                                    IconButton(onClick = { finish() }) {
-                                        Icon(Icons.Default.ArrowBack, contentDescription = null)
-                                    }
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        val intent = Intent(this@TriviaActivity, DashBoardActivity::class.java)
-                                        startActivity(intent)
-                                    }) {
-                                    }
-                                }
-                            )
-                        }
+
                     ){
                         if(showCards.value){
-                            Column(modifier = Modifier.fillMaxSize().padding(it)) {
+                            Column(modifier = Modifier
+                                .fillMaxSize()
+                                .padding(it)) {
                                 TriviaGame(questions = triviaQuestions.value)
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Button(onClick = {
@@ -152,7 +140,43 @@ class TriviaActivity : ComponentActivity() {
                                     CircularProgressIndicator()
                                 }
                             }else{
-                                Column(modifier = Modifier.fillMaxSize().padding(it)) {
+
+                                Column(modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(it)) {
+                                    OutlinedCard(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        shape = MaterialTheme.shapes.medium,
+                                        elevation = CardDefaults.cardElevation(4.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surface,
+                                            contentColor = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
+                                        ) {
+                                            Text(
+                                                text = "Create Your Own Trivia",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
+
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            Text(
+                                                text = "Select the difficulty and number of questions you want to play with. Do you think you know it all? Check it out!",
+                                                fontSize = 16.sp,
+                                                color = Color.Gray
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(24.dp))
                                     TriviaOptionsInput(onSearchClicked = {difficulty, input ->
                                         diff.value = difficulty
                                         num.value = input
