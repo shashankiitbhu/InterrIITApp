@@ -1,5 +1,7 @@
 package com.example.interriitapp
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -45,11 +47,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.getSystemService
 import coil.compose.rememberImagePainter
 import com.example.interriitapp.Models.Recipe
 import com.example.interriitapp.Models.RecipeDetails
@@ -124,7 +128,7 @@ class FoodTechActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(16.dp))
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
                                 items(list.value){
-                                    RecipeCard(it.recipe)
+                                    RecipeCard(it.recipe, this@FoodTechActivity)
                                 }
                             }
                         }
@@ -194,13 +198,17 @@ class FoodTechActivity : ComponentActivity() {
         )
     }
 @Composable
-fun RecipeCard(recipe: RecipeDetails) {
+fun RecipeCard(recipe: RecipeDetails, context: Context) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier
@@ -253,6 +261,35 @@ fun RecipeCard(recipe: RecipeDetails) {
                     }
                 }
             }
+
+
+            OutlinedButton(
+                onClick = {
+                    val textToCopy = recipe.ingredients?.joinToString(separator = "\n") { it.text.toString() } ?: ""
+                    val clipboardManager = context.getSystemService<ClipboardManager>()
+                    val clipData = android.content.ClipData.newPlainText(
+                        "Ingredients",
+                        textToCopy
+
+                    )
+
+                    clipboardManager.let { clipboard ->
+                        clipboard?.setPrimaryClip(clipData)
+                        Toast.makeText(context, "Ingredients Copied", Toast.LENGTH_SHORT).show()
+
+                    }
+
+                },
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Copy Ingredients")
+            }
         }
+
     }
 }

@@ -203,7 +203,6 @@ fun TriviaCard(
     var selectedAnswer by rememberSaveable { mutableStateOf("") }
     var showResult by rememberSaveable { mutableStateOf(false) }
 
-    // Shuffle the options so that the correct answer isn't always in the same spot
     val options = question.incorrect_answers + question.correct_answer
 
     Card(
@@ -217,7 +216,11 @@ fun TriviaCard(
                     showResult = false
                 }
             },
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier
